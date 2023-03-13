@@ -1,22 +1,24 @@
 from flask import Flask, request, jsonify
-import requests
-import sqlite3
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
 app = Flask(__name__)
-data = {
-    'data': ' *\n **\n***\n****\n'
-}
-conn = sqlite3.connect('results.db')
-c = conn.cursor()
 
-# Create a table to store the results
-c.execute('''CREATE TABLE results
-             (id INTEGER PRIMARY KEY AUTOINCREMENT, service TEXT, result TEXT)''')
+engine = create_engine('sqlite:///results.db')
+Session = sessionmaker(bind=engine)
+Base = declarative_base()
 
-conn.commit()
-conn.close()
+class Result(Base):
+    __tablename__ = 'results'
 
-response = requests.post('http://localhost:5000/service1', json=data)
-print(response.json())
+    id = Column(Integer, primary_key=True)
+    service = Column(String)
+    result = Column(String)
+
+    def __repr__(self):
+        return f"<Result(id={self.id}, service='{self.service}', result='{self.result}')>"
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -26,40 +28,39 @@ def index():
         # Concatenate the strings in reverse order
         result = '\n'.join(col1[::-1])
         # Store the result in the database
-        conn = sqlite3.connect('results.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO results (service, result) VALUES (?, ?)", ('Service 1', result))
-        conn.commit()
-        conn.close()
+        with Session() as session:
+            result_obj = Result(service='Service 1', result=result)
+            session.add(result_obj)
+            session.commit()
         return jsonify({'result': result})
     else:
         return 'Service 1 GET endpoint'
-    
-@app.route('/', methods=['GET', 'POST'])
-def index():
+
+@app.route('/service2', methods=['GET', 'POST'])
+def service2():
     if request.method == 'POST':
         data = request.json
         rows = data['data'].split('\n')
-        col1 = [row[0:2] for row in rows]
+        col2 = [row[2:4] for row in rows]
         # Concatenate the strings in reverse order
-        result = '\n'.join(col1[::-1])
+        result = '\n'.join(col2[::-1])
         # Store the result in the database
-        conn = sqlite3.connect('results.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO results (service, result) VALUES (?, ?)", ('Service 1', result))
-        conn.commit()
-        conn.close()
+        with Session() as session:
+            result_obj = Result(service='Service 2', result=result)
+            session.add(result_obj)
+            session.commit()
         return jsonify({'result': result})
     else:
-        return 'Service 1 GET endpoint'
-conn = sqlite3.connect('results.db')
-c = conn.cursor()
+        return 'Service 2 GET endpoint'
 
-# Retrieve all the results from the database
-c.execute("SELECT * FROM results")
-results = c.fetchall()
+@app.route('/results', methods=['GET'])
+def results():
+    with Session() as session:
+        results = session.query(Result).all()
+        result_list = []
+        for result in results:
+            result_list.append({'id': result.id, 'service': result.service, 'result': result.result})
+        return jsonify(result_list)
 
-for result in results:
-    print(result)
-
-conn.close()
+if __name__ == '__main__':
+    app.run(debug=True)
