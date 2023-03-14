@@ -3,26 +3,27 @@
 # Review: Volosenco Maxim
  
   # Description: 
-    ''' app = Flask(__name__)
-SERVICES = ["http://127.0.0.1:5001/", "http://127.0.0.1:5002/"]
+    ~~~
+ app = Flask(__name__)
+         SERVICES = ["http://127.0.0.1:5001/", "http://127.0.0.1:5002/"]
 
-with app.app_context():
+     with app.app_context():
     g.REQ_ID = 0
 
 
-def service_limited_counter(counter):
+     def service_limited_counter(counter):
     if counter == len(SERVICES) - 1:
         return 0
     return counter + 1
 
 
-def parse_body(body):
+     def parse_body(body):
     body = body.decode("utf-8").replace("\r", "").replace(" ", "").replace("'", "").replace("{", "").replace("}", "").split("\n")
     return body
 
 
-@app.route("/", methods=["GET", "POST"])
-def default_route():
+     @app.route("/", methods=["GET", "POST"])
+     def default_route():
     resp_body = "{'"
     if request.method == "POST":
         req_body = parse_body(request.data)
@@ -45,9 +46,9 @@ def default_route():
         return jsonify({"msg_get": "gateway-get"})
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
-    '''
-    
+     if __name__ == "__main__":
+        app.run(debug=True)
+  
+    ~~~
    1. service URLs named "SERVICES". These URLs are used to forward requests to the downstream services.
    
