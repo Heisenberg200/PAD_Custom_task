@@ -3,52 +3,22 @@
 # Review: Volosenco Maxim
  
   # Description: 
-    ~~~
- app = Flask(__name__)
-         SERVICES = ["http://127.0.0.1:5001/", "http://127.0.0.1:5002/"]
-
-     with app.app_context():
-    g.REQ_ID = 0
-
-
-     def service_limited_counter(counter):
-    if counter == len(SERVICES) - 1:
-        return 0
-    return counter + 1
-
-
-     def parse_body(body):
-    body = body.decode("utf-8").replace("\r", "").replace(" ", "").replace("'", "").replace("{", "").replace("}", "").split("\n")
-    return body
-
-
-     @app.route("/", methods=["GET", "POST"])
-     def default_route():
-    resp_body = "{'"
-    if request.method == "POST":
-        req_body = parse_body(request.data)
-        req_len = len(req_body)
-        count = 0
-        for to_send in req_body:
-            requests.post(SERVICES[count], to_send)
-            count = service_limited_counter(count)
-
-        with Session(engine) as session:
-            data = select(DataStore).order_by(DataStore.id.desc()).limit(req_len)
-
-            for el in session.scalars(data):
-                resp_body += str(el) + "\n"
-        resp_body += "'}"
-
-        return resp_body
-
-    if request.method == "GET":
-        return jsonify({"msg_get": "gateway-get"})
-
-
-     if __name__ == "__main__":
-        app.run(debug=True)
-  
-    ~~~
-   1. service URLs named "SERVICES". These URLs are used to forward requests to the downstream services.
+   
+   The gateway having 2 endpoints( GET and POST) is receiving 
+   the request that is containing the body with the data, and
+   it parses the body spliting it into the rows. Next it snds
+   the patsed set to the services from the list of services 
+   using the Round Robin algorythm ( in order first to the 0
+   servie then to the 1st service and so on...)
+    The Services are creating the db connection and if the r
+     and check if the request method is POST and store the a
+      asterisks into the database sqlite as (id, name) where 
+      name are the asterisks.
+      After the gateway has finished with all the requests
+      it connects to the database, and it takes the last n re
+      gistry(where the n is the number od rows in the body of
+      the request. And finaly it returns the result.
+   
+   
+   
    
