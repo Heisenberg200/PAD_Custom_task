@@ -3,7 +3,7 @@
 # Review: Volosenco Maxim
  
   # Description: 
-     .. app = Flask(__name__)
+    ''' app = Flask(__name__)
 SERVICES = ["http://127.0.0.1:5001/", "http://127.0.0.1:5002/"]
 
 with app.app_context():
@@ -47,7 +47,7 @@ def default_route():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    ..
+    '''
     
    1. service URLs named "SERVICES". These URLs are used to forward requests to the downstream services.
    
